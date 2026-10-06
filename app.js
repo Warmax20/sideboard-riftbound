@@ -335,7 +335,18 @@ function viewHome() {
        ${view.err ? `<p class="err">${esc(view.err)}</p>` : ''}
        <div class="actions"><button data-a="cancel-add">Cancel</button><button class="primary" data-a="create">Create</button></div>`
     : `<button class="block primary" data-a="add">Add a legend</button>`;
-  return bar('<h1>Your legends</h1>') + (list || empty) + form +
+  // On a phone, in the browser: push installing first. On iPhone the installed app keeps its
+  // own data, so guides built in the browser would not be there after installing.
+  const key = browserKey();
+  const nudge = key === 'desktop' || isInstalled() || localStorage.getItem(KEY + '-nudge') ? '' : `<div class="nudge">
+      <strong>Add Sideboard to your home screen first</strong>
+      <p>${key.startsWith('ios')
+        ? 'Do it before building your guides. On iPhone the app from your home screen keeps its own data: guides you create here in the browser will not show up in it.'
+        : 'It opens like an app, full screen and offline, straight to your guides.'}</p>
+      <button class="block" data-a="install">Show me how</button>
+      <button class="ghost" data-a="skip-nudge">Continue in the browser</button>
+    </div>`;
+  return bar('<h1>Your legends</h1>') + nudge + (list || empty) + form +
     `<div class="footer">${archived}${isInstalled() ? '' : '<button class="ghost muted" data-a="install">Add to home screen</button>'}
       <button class="ghost muted" data-a="backup">Backup and transfer</button>
       ${db.legends.length ? `<p class="muted" style="font-size:13px">${backupStatus()}</p>` : ''}</div>`;
@@ -611,6 +622,7 @@ function viewInstall() {
     `<details class="mu"><summary class="mu-head"><span class="grow">${INSTALL[k][0]}</span></summary><div class="mu-body">${steps(k)}</div></details>`).join('');
   return bar('<h1>Add to home screen</h1>', 'home') +
     `<p class="muted">Get an app icon on your phone: it opens full screen, straight to your guides, and works offline.</p>
+     ${mine.startsWith('ios') ? '<p class="nudge-note">Then build your guides in the app you open from the icon, not here in the browser: on iPhone the two keep separate data.</p>' : ''}
      ${installPrompt ? '<button class="block primary" data-a="install-now">Install now</button>' : ''}
      <h2>Your browser: ${INSTALL[mine][0]}</h2>
      <div class="mu"><div class="mu-body" style="border:0">${steps(mine)}</div></div>
@@ -650,6 +662,7 @@ function bump(side, name, delta) {
 const actions = {
   home: () => go({ name: 'home' }),
   install: () => go({ name: 'install' }),
+  'skip-nudge'() { localStorage.setItem(KEY + '-nudge', 'off'); render(); },
   'install-now'() {
     installPrompt.prompt();
     installPrompt = null;

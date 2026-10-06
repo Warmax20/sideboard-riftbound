@@ -223,6 +223,12 @@ label { display: block; font-size: 14px; color: var(--muted); margin: 16px 0 6px
 .version .line button { min-height: 38px; padding: 6px 12px; font-size: 14px; margin-left: auto; }
 select { font: inherit; color: var(--text); background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 7px 10px; min-height: 38px; }
 
+.nudge { background: var(--coral); color: var(--on-coral); border-radius: var(--radius); padding: 16px; margin-bottom: 16px; }
+.nudge strong { display: block; font-family: var(--font-head); font-weight: 800; font-size: 19px; line-height: 1.25; }
+.nudge p { margin: 6px 0 4px; }
+.nudge button.block { background: #ffffff; border-color: #ffffff; color: var(--on-coral); font-weight: 700; }
+.nudge .ghost { display: block; width: 100%; min-height: 36px; margin-top: 4px; color: var(--on-coral); text-decoration: underline; font-size: 14px; }
+.nudge-note { margin-top: 10px; padding: 10px 12px; border-radius: var(--radius); background: var(--card-2); font-weight: 600; }
 .steps { margin: 8px 0 0; padding-left: 22px; }
 .steps li { margin-bottom: 8px; line-height: 1.4; }
 details summary { cursor: pointer; list-style: none; font-weight: 600; min-height: 46px; }
