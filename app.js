@@ -198,9 +198,9 @@ const cardUrl = (file, width) => `${CARD_IMG}${file}?w=${width}&auto=format&acco
 // belongs to the second column, i.e. the "2nd" plan.
 function parseGuide(text) {
   const res = [];
-  let cur = null, mode = null, target = 'first', tab = false;
+  let cur = null, mode = null, target = 'first', tab = false, afterFirst = false;
   const start = name => {
-    cur = { id: uid(), opponent: canon(name.replace(/[\s:\-–]+$/, '')), outs: [], ins: [], second: { outs: [], ins: [] }, note: '' };
+    cur = { id: uid(), opponent: canon(name.replace(/[\s:\-–]+$/, '')), outs: [], ins: [], second: { outs: [], ins: [] }, note: '', flat: null };
     res.push(cur);
     mode = null; target = 'first'; tab = false;
   };
@@ -214,11 +214,17 @@ function parseGuide(text) {
   };
   const handle = l => {
     let m;
+    const wasAfterFirst = afterFirst;
+    afterFirst = false;
     if ((m = l.match(/^(?:vs\.?|versus|contre|match-?up)\s*:?\s+(.+)$/i))) return start(m[1]);
     if ((m = l.match(/^(1st|1er|first|premier|otp|on the play|2nd|2e|2[eè]me|second|otd|on the draw)\s*:?$/i))) {
       const second = /^(2|second|otd|on the draw)/i.test(m[1]);
+      // "2nd" straight after "1st" with no tab in between: a table whose tabs were lost in the
+      // copy (phones do that). Its cards are collected in order and split by splitColumns().
+      if (second && !tab && wasAfterFirst && cur) cur.flat = [];
       // "2nd" right after a tab is a table header: columns are then told apart card by card.
-      target = second && !tab ? 'second' : 'first';
+      target = second && !tab && !(cur && cur.flat) ? 'second' : 'first';
+      afterFirst = !second;
       return;
     }
     if ((m = l.match(/^(side ?out|side ?in|out|in|sorties?|entr[ée]es?)\b\s*(?:\(\d+\))?\s*[:\-–]?\s*(.*)$/i))) {
@@ -227,14 +233,15 @@ function parseGuide(text) {
       if (m[2]) addCards(m[2], mode);
       return;
     }
-    if ((m = l.match(/^([+-])\s*(\d+)\s*x?\s+(.+)$/))) {
+    if ((m = l.match(/^([+\-−–])\s*(\d+)\s*x?\s+(.+)$/))) {
       if (!cur) start('?');
-      mergeCard(plan()[m[1] === '+' ? 'ins' : 'outs'], { qty: +m[2], name: m[3].trim() });
+      const side = m[1] === '+' ? 'ins' : 'outs', card = { qty: +m[2], name: m[3].trim() };
+      if (cur.flat && !tab) cur.flat.push({ side, card }); else mergeCard(plan()[side], card);
       return;
     }
     if (cur && mode && /^\d+\s*x?\s+\S/.test(l)) return addCards(l, mode);
     if ((m = l.match(/^notes?\s*:\s*(.+)$/i))) { if (cur) cur.note = (cur.note + ' ' + m[1]).trim(); return; }
-    const hasCards = cur && (cur.outs.length || cur.ins.length || cur.second.outs.length || cur.second.ins.length);
+    const hasCards = cur && (cur.outs.length || cur.ins.length || cur.second.outs.length || cur.second.ins.length || (cur.flat && cur.flat.length));
     const looksLikeName = l.split(/\s+/).length <= 4 && !/[.!?]$/.test(l);
     if (!cur || (hasCards && looksLikeName)) start(l);
     else cur.note = (cur.note + ' ' + l).trim();
@@ -248,10 +255,39 @@ function parseGuide(text) {
   }
   const key = p => JSON.stringify([p.outs, p.ins].map(cs => cs.map(c => `${c.qty} ${norm(c.name)}`).sort()));
   for (const m of res) {
+    if (m.flat) {
+      const [first, second] = splitColumns(m.flat);
+      first.forEach(c => mergeCard(m[c.side], c.card));
+      second.forEach(c => mergeCard(m.second[c.side], c.card));
+    }
+    delete m.flat;
     const empty = !m.second.outs.length && !m.second.ins.length;
     if (empty || key(m.second) === key(m)) m.second = null;
   }
   return res;
+}
+
+// A two-column table read row by row, with its column separators lost: cells alternate
+// 1st, 2nd, 1st, 2nd… until the shorter column runs out, then all belong to the longer one.
+// Nothing says where that happens, so every possibility is tried and the one that makes
+// sense wins: as many cards in as out in each column, and ins listed before outs.
+function splitColumns(cells) {
+  const score = col => {
+    if (!col.length) return 0;
+    const qty = side => col.filter(c => c.side === side).reduce((n, c) => n + c.card.qty, 0);
+    const ordered = col.every((c, i) => !i || !(c.side === 'ins' && col[i - 1].side === 'outs'));
+    return (qty('ins') === qty('outs') ? 2 : 0) + (ordered ? 1 : 0);
+  };
+  let best = null;
+  for (let rows = Math.floor(cells.length / 2); rows >= 0; rows--) {
+    const paired = cells.slice(0, rows * 2), rest = cells.slice(rows * 2);
+    const a = paired.filter((_, i) => i % 2 === 0), b = paired.filter((_, i) => i % 2 === 1);
+    for (const cols of rest.length ? [[[...a, ...rest], b], [a, [...b, ...rest]]] : [[a, b]]) {
+      const s = score(cols[0]) + score(cols[1]);
+      if (!best || s > best.s) best = { s, cols };
+    }
+  }
+  return best ? best.cols : [[], []];
 }
 
 // The plan to show for a matchup: the "play second" one when it exists and is asked for.
