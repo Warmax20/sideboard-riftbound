@@ -1,0 +1,72 @@
+// Riftbound legends, extracted from the official card gallery (playriftbound.com) on 2026-10-06.
+// Update this list when a new set releases.
+const LEGENDS = ["Ahri", "Akali", "Ambessa", "Annie", "Azir", "Darius", "Diana", "Draven", "Ekko", "Evelynn", "Ezreal", "Fiora", "Garen", "Irelia", "Ivern", "Jarvan IV", "Jax", "Jayce", "Jhin", "Jinx", "Kai'Sa", "Kennen", "Kha'Zix", "K'Sante", "LeBlanc", "Lee Sin", "Leona", "Lillia", "Lucian", "Lux", "Master Yi", "Mel", "Miss Fortune", "Mordekaiser", "Nasus", "Orianna", "Ornn", "Poppy", "Pyke", "Rek'Sai", "Renata Glasc", "Renekton", "Rengar", "Rumble", "Seraphine", "Sett", "Shen", "Sivir", "Teemo", "Vex", "Vi", "Viktor", "Volibear", "Yasuo", "Zed", "Ziggs"];
+
+// Domains of each legend, from the same source. Used for the two-color rings.
+const LEGEND_DOMAINS = {
+  "Ahri": ["calm", "mind"],
+  "Akali": ["fury", "calm"],
+  "Ambessa": ["body", "order"],
+  "Annie": ["fury", "chaos"],
+  "Azir": ["calm", "order"],
+  "Darius": ["fury", "order"],
+  "Diana": ["mind", "chaos"],
+  "Draven": ["fury", "chaos"],
+  "Ekko": ["fury", "mind"],
+  "Evelynn": ["body", "chaos"],
+  "Ezreal": ["mind", "chaos"],
+  "Fiora": ["body", "order"],
+  "Garen": ["body", "order"],
+  "Irelia": ["calm", "chaos"],
+  "Ivern": ["calm", "order"],
+  "Jarvan IV": ["body", "order"],
+  "Jax": ["calm", "body"],
+  "Jayce": ["mind", "body"],
+  "Jhin": ["fury", "mind"],
+  "Jinx": ["fury", "chaos"],
+  "Kai'Sa": ["fury", "mind"],
+  "Kennen": ["order", "chaos"],
+  "Kha'Zix": ["body", "chaos"],
+  "K'Sante": ["calm", "body"],
+  "LeBlanc": ["mind", "order"],
+  "Lee Sin": ["calm", "body"],
+  "Leona": ["calm", "order"],
+  "Lillia": ["calm", "mind"],
+  "Lucian": ["fury", "body"],
+  "Lux": ["mind", "order"],
+  "Master Yi": ["calm", "body"],
+  "Mel": ["mind", "chaos"],
+  "Miss Fortune": ["body", "chaos"],
+  "Mordekaiser": ["fury", "order"],
+  "Nasus": ["calm", "mind"],
+  "Orianna": ["calm", "mind"],
+  "Ornn": ["calm", "mind"],
+  "Poppy": ["body", "order"],
+  "Pyke": ["fury", "chaos"],
+  "Rek'Sai": ["fury", "order"],
+  "Renata Glasc": ["mind", "order"],
+  "Renekton": ["fury", "body"],
+  "Rengar": ["fury", "body"],
+  "Rumble": ["fury", "mind"],
+  "Seraphine": ["mind", "order"],
+  "Sett": ["body", "order"],
+  "Shen": ["calm", "order"],
+  "Sivir": ["body", "chaos"],
+  "Teemo": ["mind", "chaos"],
+  "Vex": ["calm", "chaos"],
+  "Vi": ["fury", "order"],
+  "Viktor": ["mind", "order"],
+  "Volibear": ["fury", "body"],
+  "Yasuo": ["calm", "chaos"],
+  "Zed": ["fury", "chaos"],
+  "Ziggs": ["fury", "chaos"]
+};
+
+// Card sets in release order. Release dates decide which set a guide version belongs to by default.
+const SETS = [
+  { id: "OGN", name: "Origins", date: "2025-10-31" },
+  { id: "SFD", name: "Spiritforged", date: "2026-02-13" },
+  { id: "UNL", name: "Unleashed", date: "2026-05-08" },
+  { id: "VEN", name: "Vendetta", date: "2026-07-31" },
+  { id: "RAD", name: "Radiance", date: "2026-10-23" }
+];

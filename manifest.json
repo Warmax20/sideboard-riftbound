@@ -1,0 +1,12 @@
+{
+  "name": "Sideboard",
+  "short_name": "Sideboard",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#fffaf2",
+  "theme_color": "#147f97",
+  "icons": [
+    { "src": "icon-180.png", "sizes": "180x180", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}
