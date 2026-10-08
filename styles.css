@@ -229,6 +229,7 @@ select { font: inherit; color: var(--text); background: var(--card); border: 1px
 .nudge button.block { background: #ffffff; border-color: #ffffff; color: var(--on-coral); font-weight: 700; }
 .nudge .ghost { display: block; width: 100%; min-height: 36px; margin-top: 4px; color: var(--on-coral); text-decoration: underline; font-size: 14px; }
 .nudge-note { margin-top: 10px; padding: 10px 12px; border-radius: var(--radius); background: var(--card-2); font-weight: 600; }
+.sample { margin: 10px 0 0; padding: 10px 12px; border-radius: 10px; background: var(--card-2); font: 13px/1.45 ui-monospace, Menlo, Consolas, monospace; white-space: pre-wrap; }
 .steps { margin: 8px 0 0; padding-left: 22px; }
 .steps li { margin-bottom: 8px; line-height: 1.4; }
 details summary { cursor: pointer; list-style: none; font-weight: 600; min-height: 46px; }

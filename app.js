@@ -547,10 +547,50 @@ function importPreview() {
       ${m.note ? `<p class="note">${esc(m.note)}</p>` : ''}</div></div>`).join('');
 }
 
+// The format the importer is sure to read, shown to users and handed to AI assistants.
+const GUIDE_FORMAT = `vs Irelia
+1st
++2 Acceptable Losses
++1 Sabotage
+-2 Up from the Deep
+-1 Punch First
+2nd
++2 Acceptable Losses
++1 Sabotage
+-2 Traveling Merchant
+-1 Punch First
+Note: keep removal for their champion
+
+vs Jayce
++2 Acceptable Losses
+-2 Rampage`;
+
+const AI_PROMPT = `Reformat the sideboard guide at the end of this message. Reply with plain text only, in exactly this format, and nothing else:
+
+${GUIDE_FORMAT}
+
+Rules:
+- Start each matchup with "vs" and the opposing legend, and leave a blank line between matchups.
+- One card per line: "+" and a quantity for a card coming in, "-" and a quantity for a card going out.
+- Put the plan for going first under a "1st" line and the plan for going second under a "2nd" line.
+- If the plan is the same going first and second, leave out the "1st" and "2nd" lines and list the cards once.
+- A "Note:" line is optional, one per matchup.
+- Keep card names exactly as written. Add no comments, no headings, no formatting.
+
+The guide:
+`;
+
 function viewImport() {
   return bar('<h1>Import guide</h1>', 'back-guide') +
-    `<label for="imp">Paste your guide</label>
-     <textarea id="imp" data-f="text" style="min-height:200px" placeholder="vs Viktor&#10;OUT: 2 Falling Star, 1 Stupefy&#10;IN: 2 Hextech Ray, 1 Rune Prison&#10;&#10;vs Jinx&#10;-2 Stupefy&#10;+2 Rune Prison">${esc(view.text)}</textarea>
+    `<details class="mu"><summary class="mu-head"><span class="grow">Which format works?</span></summary>
+       <div class="mu-body">
+         <p class="note">One card per line, <b>+</b> for a card in and <b>−</b> for a card out. Start each matchup with <b>vs</b> and the legend. Use <b>1st</b> and <b>2nd</b> lines when the plan changes with turn order.</p>
+         <pre class="sample">${esc(GUIDE_FORMAT)}</pre>
+         <p class="note">Guide in another shape? Copy the instructions below, paste them into an AI assistant followed by your guide, then paste its answer here.</p>
+         <button class="block" data-a="copy-prompt">${view.copied ? 'Copied' : 'Copy instructions for an AI'}</button>
+       </div></details>
+     <label for="imp">Paste your guide</label>
+     <textarea id="imp" data-f="text" style="min-height:200px" placeholder="vs Viktor&#10;+2 Hextech Ray&#10;+1 Rune Prison&#10;-2 Falling Star&#10;-1 Stupefy">${esc(view.text)}</textarea>
      <h2>Preview</h2><div id="preview">${importPreview()}</div>
      <p class="muted">A matchup that already exists under the same name is replaced.</p>
      <div class="actions"><button data-a="back-guide">Cancel</button><button class="primary" data-a="do-import">Import</button></div>`;
@@ -662,6 +702,19 @@ function bump(side, name, delta) {
 const actions = {
   home: () => go({ name: 'home' }),
   install: () => go({ name: 'install' }),
+  'copy-prompt'() {
+    const done = () => { view.copied = true; render(); document.querySelector('details').open = true; };
+    navigator.clipboard.writeText(AI_PROMPT).then(done, () => {
+      // Clipboard refused (older browser, no permission): copy through a temporary text field.
+      const t = document.createElement('textarea');
+      t.value = AI_PROMPT;
+      document.body.append(t);
+      t.select();
+      document.execCommand('copy');
+      t.remove();
+      done();
+    });
+  },
   'skip-nudge'() { localStorage.setItem(KEY + '-nudge', 'off'); render(); },
   'install-now'() {
     installPrompt.prompt();
