@@ -175,6 +175,7 @@ label { display: block; font-size: 14px; color: var(--muted); margin: 16px 0 6px
 .mu-actions button { min-height: 36px; padding: 6px 12px; font-size: 14px; }
 
 .banner { background: var(--card-2); border: 1px solid var(--line); border-radius: var(--radius); padding: 10px 12px; margin-bottom: 12px; font-size: 14px; color: var(--warn); display: flex; align-items: center; gap: 10px; }
+.banner.ok { background: var(--in-bg); border-color: var(--in-bg); color: var(--in); font-weight: 600; }
 .banner button { min-height: 34px; padding: 4px 10px; font-size: 14px; }
 
 .step { display: flex; align-items: center; gap: 8px; padding: 6px 0; border-bottom: 1px solid var(--line); }

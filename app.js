@@ -43,13 +43,41 @@ function backupStatus() {
   return `Last backup: ${fmtDate(last)}${dirty ? ' · changes since then' : ''}`;
 }
 
+// Adds a backup's legends to this device without ever removing or overwriting what is here.
+// A legend already present gains the backup's versions; a version that exists on both sides
+// with different content is kept twice, the backup's copy marked "(imported)".
+function mergeBackup(legends) {
+  let added = 0, merged = 0;
+  for (const inc of legends) {
+    const mine = db.legends.find(l => l.id === inc.id) || db.legends.find(l => norm(l.name) === norm(inc.name));
+    if (!mine) { db.legends.push(inc); added++; continue; }
+    let changed = false;
+    for (const v of inc.versions) {
+      const same = mine.versions.find(x => x.id === v.id);
+      if (same && JSON.stringify(same) === JSON.stringify(v)) continue;
+      mine.versions.push(same ? { ...v, id: uid(), title: `${titleOf(v)} (imported)`.trim() } : v);
+      changed = true;
+    }
+    if (!changed) continue;
+    merged++;
+    mine.archived = false;
+    // Oldest first, so the most recent version is the current one; then number them 1, 2, 3…
+    mine.versions = mine.versions.map((v, i) => [v, i]).sort((a, b) => a[0].date.localeCompare(b[0].date) || a[1] - b[1]).map(x => x[0]);
+    mine.versions.forEach((v, i) => { v.n = i + 1; });
+  }
+  const parts = [];
+  if (added) parts.push(`${added} legend${added === 1 ? '' : 's'} added`);
+  if (merged) parts.push(`${merged} legend${merged === 1 ? '' : 's'} updated with new versions`);
+  return parts.length ? `${parts.join(', ')}. Nothing was removed.` : 'Everything in this backup was already here.';
+}
+
 function restoreFrom(text) {
   try {
     const d = JSON.parse(text);
     if (!d || !Array.isArray(d.legends) || d.legends.some(l => !l.id || !l.name || !Array.isArray(l.versions) || !l.versions.length)) throw 0;
-    db = d;
+    const notice = mergeBackup(d.legends);
     save(false);
-    go({ name: 'home' });
+    go({ name: 'home', notice });
   } catch {
     view.err = "That isn't a valid backup. Pick the .json file you exported.";
     render();
@@ -346,7 +374,8 @@ function viewHome() {
       <button class="block" data-a="install">Show me how</button>
       <button class="ghost" data-a="skip-nudge">Continue in the browser</button>
     </div>`;
-  return bar('<h1>Your legends</h1>') + nudge + (list || empty) + form +
+  const notice = view.notice ? `<div class="banner ok">${esc(view.notice)}</div>` : '';
+  return bar('<h1>Your legends</h1>') + nudge + notice + (list || empty) + form +
     `<div class="footer">${archived}${isInstalled() ? '' : '<button class="ghost muted" data-a="install">Add to home screen</button>'}
       <button class="ghost muted" data-a="backup">Backup and transfer</button>
       ${db.legends.length ? `<p class="muted" style="font-size:13px">${backupStatus()}</p>` : ''}</div>`;
@@ -502,6 +531,7 @@ function viewVersions() {
      <h2 id="legend-settings">This legend</h2>
      <div class="actions">
        <button class="wide" data-a="pdf">Save guide as PDF</button>
+       <button class="wide" data-a="export-legend">Back up this legend only</button>
        <button data-a="archive">${l.archived ? 'Restore from archive' : 'Archive'}</button>
        <button class="danger" data-a="del-legend">${view.confirmDel ? 'Confirm deletion' : 'Delete'}</button>
      </div>
@@ -604,7 +634,7 @@ function viewBackup() {
      <h2>Restore</h2>
      <label class="btn file">Restore from a backup file<input type="file" accept=".json,application/json" data-c="restore-file" hidden></label>
      ${view.err ? `<p class="err">${esc(view.err)}</p>` : ''}
-     <p class="muted" style="margin-top:8px">Restoring replaces all the guides on this device.</p>`;
+     <p class="muted" style="margin-top:8px">Restoring adds the backup's legends and versions to this device. Nothing already here is removed.</p>`;
 }
 
 // ---------- add to home screen ----------
@@ -868,6 +898,11 @@ const actions = {
     goGuide(view.lid);
   },
   backup: () => go({ name: 'backup' }),
+  'export-legend'() {
+    const l = legend(view.lid);
+    const name = `sideboard-${l.name.replace(/[^\p{L}\p{N}]+/gu, '')}-${today()}.json`;
+    giveFile(new File([JSON.stringify({ legends: [l] }, null, 2)], name, { type: 'application/json' }));
+  },
   async export() {
     const file = new File([JSON.stringify(db, null, 2)], `sideboard-backup-${today()}.json`, { type: 'application/json' });
     if (!await giveFile(file)) return;
