@@ -1,6 +1,6 @@
-const SHELL = 'sb-shell-v2';
+const SHELL = 'sb-shell-v3';
 const IMAGES = 'sb-images-v1';
-const FILES = ['./', 'index.html', 'styles.css', 'legends.js', 'cards.js', 'pdf.js', 'app.js', 'manifest.json', 'icon-180.png', 'icon-512.png'];
+const FILES = ['./', 'index.html', 'styles.css', 'legends.js', 'sets.js', 'cards.js', 'pdf.js', 'app.js', 'manifest.json', 'icon-180.png', 'icon-512.png'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(SHELL).then(c => c.addAll(FILES)).then(() => self.skipWaiting()));
